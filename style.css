@@ -209,23 +209,45 @@ nav {
 }
 
 .image-gallery {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    display: flex;
+    overflow-x: auto;
     gap: 15px;
     width: 100%;
+    padding-bottom: 10px;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-color) #222;
+}
+
+.image-gallery::-webkit-scrollbar {
+    height: 8px;
+}
+
+.image-gallery::-webkit-scrollbar-track {
+    background: #222;
+    border-radius: 4px;
+}
+
+.image-gallery::-webkit-scrollbar-thumb {
+    background-color: var(--accent-color);
+    border-radius: 4px;
 }
 
 .project-img {
-    width: 100%;
+    flex: 0 0 auto;
+    width: 300px;
     height: auto;
+    max-height: 200px;
+    object-fit: cover;
     border-radius: 8px;
     border: 1px solid #444;
     transition: transform 0.3s;
     cursor: pointer;
+    scroll-snap-align: start;
 }
 
 .project-img:hover {
-    transform: scale(1.05);
+    transform: scale(1.02);
     border-color: var(--accent-color);
 }
 
