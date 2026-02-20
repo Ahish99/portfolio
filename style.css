@@ -321,6 +321,23 @@ nav {
     padding-bottom: 2px;
 }
 
+.cert-btn {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 6px 12px;
+    background-color: transparent;
+    border: 1px solid var(--accent-color);
+    color: var(--accent-color);
+    font-size: 0.8rem;
+    border-radius: 4px;
+    transition: all 0.3s;
+}
+
+.cert-btn:hover {
+    background-color: var(--accent-color);
+    color: #000;
+}
+
 /* Footer as Contact */
 .footer-content {
     text-align: center;
