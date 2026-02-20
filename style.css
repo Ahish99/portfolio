@@ -10,6 +10,10 @@
     --font-primary: 'Inter', sans-serif;
 }
 
+* {
+    box-sizing: border-box;
+}
+
 body {
     background-color: var(--bg-color);
     color: var(--text-color);
@@ -234,20 +238,23 @@ nav {
 }
 
 .project-img {
-    flex: 0 0 auto;
-    width: 300px;
+    flex: 0 0 100%;
+    width: 100%;
     height: auto;
-    max-height: 200px;
-    object-fit: cover;
+    max-height: 500px;
+    object-fit: contain;
     border-radius: 8px;
     border: 1px solid #444;
     transition: transform 0.3s;
-    cursor: pointer;
-    scroll-snap-align: start;
+    cursor: grab;
+    scroll-snap-align: center;
+}
+
+.project-img:active {
+    cursor: grabbing;
 }
 
 .project-img:hover {
-    transform: scale(1.02);
     border-color: var(--accent-color);
 }
 
