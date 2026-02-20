@@ -200,12 +200,33 @@ nav {
     align-items: center;
     justify-content: center;
     min-height: 300px;
+    padding: 20px;
 }
 
 .visual-placeholder {
-    color: #444;
-    font-weight: bold;
-    font-size: 1.5rem;
+    display: none;
+    /* Hide placeholder */
+}
+
+.image-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    width: 100%;
+}
+
+.project-img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    border: 1px solid #444;
+    transition: transform 0.3s;
+    cursor: pointer;
+}
+
+.project-img:hover {
+    transform: scale(1.05);
+    border-color: var(--accent-color);
 }
 
 .tech-stack {
