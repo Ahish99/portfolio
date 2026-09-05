@@ -1,0 +1,25 @@
+{
+    "name": "Python Quest - Learn Python by Playing",
+    "short_name": "Python Quest",
+    "description": "An RPG-style game that teaches Python programming through interactive challenges",
+    "start_url": "./index.html",
+    "display": "fullscreen",
+    "orientation": "portrait",
+    "background_color": "#1a1a2e",
+    "theme_color": "#6c5ce7",
+    "icons": [
+        {
+            "src": "icons/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        }
+    ],
+    "categories": ["education", "games", "productivity"]
+}
