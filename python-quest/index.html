@@ -228,10 +228,24 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
     <script src="js/game.js"></script>
     <script src="js/challenges.js"></script>
     <script src="js/storage.js"></script>
+    <script>
+        // Hide splash screen once everything is ready
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                var splash = document.getElementById('splash-screen');
+                if (splash) {
+                    splash.style.opacity = '0';
+                    splash.style.transition = 'opacity 0.5s';
+                    setTimeout(function() {
+                        splash.style.display = 'none';
+                        showScreen('main-menu');
+                    }, 500);
+                }
+            }, 800); // Short delay for loading effect
+        });
+    </script>
 </body>
 </html>

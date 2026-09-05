@@ -159,46 +159,182 @@ function clearOutput() {
     document.getElementById('code-output').textContent = '';
 }
 
-// ===== Run Python Code with Skulpt =====
+// ===== Simple Python Interpreter =====
+function runPython(code) {
+    const output = [];
+    const variables = {};
+    const lines = code.split('\n');
+    let i = 0;
+
+    function evaluate(expr, vars) {
+        // Handle string literals
+        if ((expr.startsWith('"') && expr.endsWith('"')) ||
+            (expr.startsWith("'") && expr.endsWith("'"))) {
+            return expr.slice(1, -1);
+        }
+
+        // Handle numbers
+        if (!isNaN(expr)) return Number(expr);
+
+        // Handle variables
+        if (vars[expr] !== undefined) return vars[expr];
+
+        // Handle f-strings (basic)
+        if (expr.includes('f"') || expr.includes("f'")) {
+            let str = expr.slice(2, -1);
+            str = str.replace(/\{([^}]+)\}/g, (_, varName) => {
+                return vars[varName.trim()] !== undefined ? vars[varName.trim()] : '';
+            });
+            return str;
+        }
+
+        // Handle expressions
+        try {
+            // Replace variables in expression
+            let evalExpr = expr;
+            for (const [key, value] of Object.entries(vars)) {
+                const regex = new RegExp('\\b' + key + '\\b', 'g');
+                evalExpr = evalExpr.replace(regex, JSON.stringify(value));
+            }
+            return eval(evalExpr);
+        } catch (e) {
+            return expr;
+        }
+    }
+
+    while (i < lines.length) {
+        const line = lines[i].trim();
+
+        // Skip comments and empty lines
+        if (!line || line.startsWith('#')) {
+            i++;
+            continue;
+        }
+
+        // Handle print statements
+        if (line.startsWith('print(')) {
+            const content = line.slice(6, -1);
+
+            // Handle multiple arguments
+            const args = [];
+            let arg = '';
+            let inString = false;
+            let parenDepth = 0;
+
+            for (let j = 0; j < content.length; j++) {
+                const char = content[j];
+                if ((char === '"' || char === "'") && content[j-1] !== '\\') {
+                    inString = !inString;
+                }
+                if (char === '(') parenDepth++;
+                if (char === ')') parenDepth--;
+
+                if (char === ',' && !inString && parenDepth === 1) {
+                    args.push(arg.trim());
+                    arg = '';
+                } else {
+                    arg += char;
+                }
+            }
+            args.push(arg.trim());
+
+            // Evaluate and collect outputs
+            const results = args.map(a => {
+                a = a.trim();
+                if ((a.startsWith('"') && a.endsWith('"')) ||
+                    (a.startsWith("'") && a.endsWith("'"))) {
+                    return a.slice(1, -1);
+                }
+                // Handle + concatenation
+                if (a.includes('+')) {
+                    const parts = a.split('+').map(p => evaluate(p.trim(), variables));
+                    return parts.join('');
+                }
+                return evaluate(a, variables);
+            });
+
+            output.push(results.join(' '));
+        }
+        // Handle variable assignment
+        else if (line.includes('=') && !line.includes('==')) {
+            const parts = line.split('=');
+            const varName = parts[0].trim();
+            const value = parts.slice(1).join('=').trim();
+
+            if (value.includes('+')) {
+                const parts = value.split('+').map(p => evaluate(p.trim(), variables));
+                variables[varName] = parts.join('');
+            } else {
+                variables[varName] = evaluate(value, variables);
+            }
+        }
+        // Handle for loops (simple)
+        else if (line.startsWith('for ')) {
+            const match = line.match(/for\s+(\w+)\s+in\s+range\((\d+)(?:,\s*(\d+))?\)/);
+            if (match) {
+                const varName = match[1];
+                const start = match[2] ? parseInt(match[2]) : 0;
+                const end = match[3] ? parseInt(match[3]) : start;
+                const bodyLines = [];
+                let braceCount = 0;
+                i++;
+
+                while (i < lines.length) {
+                    const bodyLine = lines[i].trim();
+                    if (bodyLine.includes('{')) braceCount += (bodyLine.match(/\{/g) || []).length;
+                    if (bodyLine.includes('}')) braceCount -= (bodyLine.match(/\}/g) || []).length;
+
+                    if (bodyLine.startsWith('print(')) {
+                        bodyLines.push(bodyLine);
+                    }
+                    if (braceCount <= 0 && bodyLine.includes('}')) break;
+                    i++;
+                }
+
+                for (let j = start; j < end; j++) {
+                    variables[varName] = j;
+                    bodyLines.forEach(bl => {
+                        if (bl.startsWith('print(')) {
+                            const content = bl.slice(6, -1);
+                            if ((content.startsWith('"') && content.endsWith('"')) ||
+                                (content.startsWith("'") && content.endsWith("'"))) {
+                                output.push(content.slice(1, -1));
+                            } else {
+                                output.push(evaluate(content, variables));
+                            }
+                        }
+                    });
+                }
+            }
+        }
+        i++;
+    }
+
+    return output.join('\n');
+}
+
+// ===== Run Python Code =====
 function runCode() {
     const code = document.getElementById('code-editor').value;
     const outputEl = document.getElementById('code-output');
-    
+
     if (!code.trim()) {
         outputEl.textContent = 'Please write some code first!';
         outputEl.classList.add('error');
         return;
     }
-    
+
     outputEl.textContent = 'Running...';
     outputEl.classList.remove('error');
-    
-    // Use Skulpt to run Python in browser
-    Sk.configure({
-        output: function(text) {
-            outputEl.textContent += text + '\n';
-        },
-        read: function(x) {
-            if (Sk.builtinFiles === undefined || Sk.builtinFiles['files'][x] === undefined) {
-                throw "File not found: '" + x + "'";
-            }
-            return Sk.builtinFiles['files'][x];
-        }
-    });
-    
-    const promise = Sk.misceval.asyncToPromise(function() {
-        return Sk.importMainWithBody("test", false, code, true);
-    });
-    
-    promise.then(function(mod) {
-        checkAnswer(outputEl.textContent);
-    }).catch(function(err) {
-        let errorMsg = err.toString();
-        // Clean up the error message
-        errorMsg = errorMsg.replace(/<[^>]*>/g, '');
-        outputEl.textContent = '❌ Error: ' + errorMsg;
+
+    try {
+        const result = runPython(code);
+        outputEl.textContent = result || '(No output)';
+        checkAnswer(result || '');
+    } catch (err) {
+        outputEl.textContent = '❌ Error: ' + err.message;
         outputEl.classList.add('error');
-    });
+    }
 }
 
 // ===== Check Answer =====
